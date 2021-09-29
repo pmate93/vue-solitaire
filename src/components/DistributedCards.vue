@@ -1,14 +1,24 @@
 <template>
-  <h1>yolo</h1>
+<Card />
+  
+<div v-for='(cards, index) in distributedCards' :key="index">
+    <Card v-for='card in cards' :key="card.id" :title="card.type" />
+
+
+</div>
+
 </template>
 
 <script>
-
+import Card from '../components/Card.vue'
 
 export default {
     name: 'DistributedCards',
+    components: {
+        Card
+    },
     props:{
-        deck: Array
+        distributedCards: Array
     },
 
     data(){

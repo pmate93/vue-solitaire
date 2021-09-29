@@ -1,6 +1,6 @@
 <template>
-  <DistributedCards :distributedDeck="distributedDeck" />
-  <img src="./assets/cards/2_of_clubs.svg">
+  <DistributedCards :distributedCards="distributedCards" />
+  <!-- <img src="./assets/cards/2_of_clubs.svg"> -->
   
 </template>
 
@@ -20,12 +20,11 @@ export default {
         {type: ''},
         {number: ''},
         {src: ''},
+        {id: 0}
       ],
 
-      distributedDeck:[
-        {type: ''},
-        {number: ''},
-        {src: ''},
+      distributedCards: [
+        { columns: [] }
       ]
       
     }
@@ -62,18 +61,29 @@ export default {
         let idx = Math.floor(Math.random() * deckSize);
         let removedIndex = indexes.splice(idx, 1);
         this.deck[removedIndex] = temporaryDeck.pop();
+        this.deck[removedIndex].id = deckSize;
         deckSize -= 1;
       }while(deckSize >= 0);
 
       console.log(this.deck);
 
       //getting distributed cards
+      let tempDeck = [];
+
       for(let i = 0; i < 28; i++){
-        this.distributedDeck[i] = this.deck.pop();
+        tempDeck[i] = this.deck.pop();
+      }
+      
+      this.distributedCards = [];
+      for(let i = 1; i < 8; i++){
+        this.distributedCards[i] = [];
+        for (let j = 0; j < i; j++) {
+          this.distributedCards[i].push(tempDeck.pop());
+        }
       }
 
-      console.log(this.distributedDeck);
-
+      console.log(this.distributedCards);
+      console.log(tempDeck);
 
     },
 
@@ -92,12 +102,20 @@ export default {
 </script>
 
 <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  /* font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 60px; */
+
+  display: flex;
 }
 </style>
