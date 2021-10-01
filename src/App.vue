@@ -1,5 +1,5 @@
 <template>
-  <DistributedCards :distributedCards="distributedCards" />
+  <DistributedCards :distributedCards="distributedCards" @onDrop="onDrop" @startDrag="startDrag" @dragEnd="dragEnd" />
   <!-- <img src="./assets/cards/2_of_clubs.svg"> -->
   
 </template>
@@ -20,7 +20,9 @@ export default {
         {type: ''},
         {number: ''},
         {src: ''},
-        {id: 0}
+        {id: 0},
+        {flipped: false},
+        {dragging: false}
       ],
 
       distributedCards: [
@@ -51,7 +53,8 @@ export default {
           temporaryDeck.push({
             type: types[i],
             number: numbers[j],
-            src: './assets/cards/' + numbers[j] + '_of_' + types[i] + '.svg'
+            src: require('./assets/cards/' + numbers[j] + '_of_' + types[i] + '.svg'),
+            flipped: false
           })
         }
       }
@@ -80,12 +83,76 @@ export default {
         for (let j = 0; j < i; j++) {
           this.distributedCards[i].push(tempDeck.pop());
         }
+        this.distributedCards[i][this.distributedCards[i].length-1].flipped = true;
       }
 
       console.log(this.distributedCards);
-      console.log(tempDeck);
 
     },
+
+    dragEnd(card){
+      card.dragging = false;
+    },
+
+    startDrag(event, card, columnIdx){
+
+      event.dataTransfer.dropEffect = 'move';
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('cardID', card.id);
+      event.dataTransfer.setData('oldColumnIdx', columnIdx);
+      let indexOfClickedCard = this.distributedCards[columnIdx].findIndex(x => x.id === card.id);
+      event.dataTransfer.setData('indexOfClickedCard', indexOfClickedCard);
+      
+      /* let img = document.createElement("img");
+      img.src = this.distributedCards[columnIdx][indexOfClickedCard].src;
+      img.style.opacity = '100%';
+      event.dataTransfer.setDragImage(img, 0, 0); */
+      setTimeout(()=>{
+        this.distributedCards[columnIdx][indexOfClickedCard].dragging = true;
+      },0)
+    
+    },
+
+    onDrop(event, columnIdx){
+      const cardID = event.dataTransfer.getData('cardID');
+      const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx');
+      const indexOfClickedCard = event.dataTransfer.getData('indexOfClickedCard');
+      console.log(cardID, oldColumnIdx, columnIdx);
+
+      /* setTimeout(()=>{
+        this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
+      },0) */
+
+      if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
+        console.log('yolo');
+
+        let tempArray = [];
+        let counter = 0;
+        for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
+          tempArray.push(this.distributedCards[oldColumnIdx][i]);
+          this.distributedCards[oldColumnIdx][i].dragging = false;
+          counter++;
+        }
+        console.log(tempArray);
+
+        //adding and removing selected card
+        for (let i = 0; i < counter; i++) {
+          this.distributedCards[oldColumnIdx].pop();
+        }
+        this.distributedCards[columnIdx].push(...tempArray);
+      }else{
+        setTimeout(()=>{
+          this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
+        },0)
+        this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+      }
+
+
+      //flipping top card where card was removed
+      if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+        this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+      }
+    }
 
   /* computed: {
     image () {
@@ -117,5 +184,8 @@ export default {
   margin-top: 60px; */
 
   display: flex;
+
+  
+  
 }
 </style>
