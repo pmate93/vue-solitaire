@@ -16,7 +16,10 @@
          :dragging="card.dragging"
          :draggable="card.flipped ? 'true' : 'false'"
          @dragend="$emit('dragEnd', card)"
-         @dragstart="$emit('startDrag', $event, card, index)" />
+         @dragstart="$emit('startDrag', $event, card, index)"
+         @drag="$emit('onDrag', $event)"
+         @calculateWidth="$emit('calculateWidth', height)"
+          />
 
         </div>
     </div>
@@ -25,35 +28,31 @@
 
 <script>
 import Card from '../components/Card.vue'
-
 export default {
     name: 'DistributedCards',
     components: {
         Card
     },
-    emits:['onDrop', 'startDrag', 'dragEnd'],
+    emits:['onDrop', 'startDrag', 'dragEnd', 'onDrag', 'calculateWidth'],
     props:{
-        distributedCards: Array
+        distributedCards: Array,
     },
-
     data(){
         return{
             card: '',
             dragging: false,
+            height: 200
         }
     },
-
     methods:{
     }
 }
 </script>
 
 <style>
-
 .card-container{
     position:relative;
     width:140px;
+    height:140px;
 }
-
-
 </style>
