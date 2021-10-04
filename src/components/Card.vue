@@ -2,8 +2,8 @@
 
   <img v-if="flipped" 
   v-bind:src="this.url"
-  
-  @click="getWidth"
+  ref="image"
+  @load="getWidth"
   :style="{display: this.dragging ? 'none' : ''}"
 
   class="child">
@@ -30,23 +30,35 @@ export default {
     return{
       card_back: card_back,
       
-      height: 100,
-      width: 0,
-      yolo: "asdasd"
+      imageSize: {
+        width: 0,
+        height: 0
+      },
     }
   },
 
   methods: {
-    getWidth(event){
-      //this.height = this.$refs.image.clientHeight;
+    getWidth(){
 
-      //this.width = this.$refs.image.clientWidth;
+      this.imageSize.height = this.$refs.image.clientHeight;
+      this.imageSize.width = this.$refs.image.clientWidth;
 
-      //console.log("magassag", this.$refs.image.clientHeight)
-      this.$emit('calculateWidth', "asdasd")
+      this.$emit('calculateWidth', this.imageSize);
     },
+
+    setWidthAndHeight(){
+      this.imageSize.height = document.getElementsByClassName('child')[0].clientHeight;
+      this.imageSize.width = document.getElementsByClassName('child')[0].clientWidth;
+
+      this.$emit('calculateWidth', this.imageSize);
+    }
   },
 
+  created() {
+    window.addEventListener("resize", this.setWidthAndHeight)
+  },
+
+  
 
 }
 </script>

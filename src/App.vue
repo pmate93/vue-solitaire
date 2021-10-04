@@ -17,7 +17,7 @@
   <div
   ref="realDragImage"
   v-show="isDragging"
-  style="position: absolute; z-index: 1000"
+  style="position: absolute; z-index: 1"
 ><img :src="dragImage"></div>
 
 
@@ -107,10 +107,9 @@ export default {
       console.log(this.distributedCards);
     },
 
-    calculateWidth(asd){
-      console.log("swag", asd);
-      //this.cardWidth = width;
-      this.cardHeight = asd;
+    calculateWidth(imageSize){
+      this.cardWidth = imageSize.width;
+      this.cardHeight = imageSize.height;
     },
 
     whichImageToDrag(src){
@@ -132,7 +131,7 @@ export default {
     onDrag(event){
 
       if (!event.pageX && !event.pageY) return
-        const [offsetX, offsetY] = [4, -this.cardHeight/2]
+        const [offsetX, offsetY] = [-this.cardWidth/2, -this.cardHeight/2]
         this.$refs.realDragImage.style.left = event.pageX + offsetX + 'px'
         this.$refs.realDragImage.style.top = event.pageY + offsetY + 'px'
         this.isDragging = true
@@ -197,16 +196,18 @@ export default {
       if(this.distributedCards[oldColumnIdx].length-1 >= 0){
         this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
       }
+    },
+
+    yolo(){
+      console.log('object')
     }
-  /* computed: {
-    image () {
-      return require('./assets/cards/' + '2_of_clubs' + '.svg');
-    }
-  } */
+
+  
   },
   created(){
     this.generateDeck();
     this.removeGhostImage();
+    //window.addEventListener("resize", this.calculateWidth);
   }
 }
 </script>

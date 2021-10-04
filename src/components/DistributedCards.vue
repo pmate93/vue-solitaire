@@ -18,7 +18,7 @@
          @dragend="$emit('dragEnd', card)"
          @dragstart="$emit('startDrag', $event, card, index)"
          @drag="$emit('onDrag', $event)"
-         @calculateWidth="$emit('calculateWidth', height)"
+         @calculateWidth="$emit('calculateWidth', $event)"
           />
 
         </div>
@@ -41,10 +41,14 @@ export default {
         return{
             card: '',
             dragging: false,
-            height: 200
         }
     },
     methods:{
+        /* calculateWidth(height){
+      console.log("swag", height);
+      //this.cardWidth = width;
+      this.cardHeight = height;
+    }, */
     }
 }
 </script>
