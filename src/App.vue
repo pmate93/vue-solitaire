@@ -17,8 +17,13 @@
   <div
   ref="realDragImage"
   v-show="isDragging"
-  style="position: absolute; z-index: 1"
-><img :src="dragImage"></div>
+  style="position: absolute;"
+  class="realDragImage"
+  > 
+    <div v-for="(image, index) in arrayForDragging" :key="image.id" class="dragImage-container">
+      <img :src="image.src" :style="{top: index * 12 + 10 + 'px'}">
+    </div>
+  </div>
 
 
 </template>
@@ -53,7 +58,8 @@ export default {
       ],
       distributedCards: [
         { columns: [] }
-      ]
+      ],
+      arrayForDragging: []
       
     }
   },
@@ -123,18 +129,29 @@ export default {
 
     },
 
-    dragEnd(card){
+    dragEnd(card, idx, columnIdx){
+
+      if(idx < this.distributedCards[columnIdx].length-1){
+        for (let i = idx; i < this.distributedCards[columnIdx].length; i++) {
+          this.distributedCards[columnIdx][i].dragging = false;
+        }
+      }else{
+        card.dragging = false;
+      }
+
       this.isDragging = false;
-      card.dragging = false;
+      this.arrayForDragging = [];
+
     },
 
     onDrag(event){
 
       if (!event.pageX && !event.pageY) return
-        const [offsetX, offsetY] = [-this.cardWidth/2, -this.cardHeight/2]
-        this.$refs.realDragImage.style.left = event.pageX + offsetX + 'px'
-        this.$refs.realDragImage.style.top = event.pageY + offsetY + 'px'
-        this.isDragging = true
+        //const [offsetX, offsetY] = [-this.cardWidth/2, -this.cardHeight/2];
+        const [offsetX, offsetY] = [2,2];
+        this.$refs.realDragImage.style.left = event.pageX + offsetX + 'px';
+        this.$refs.realDragImage.style.top = event.pageY + offsetY + 'px';
+        this.isDragging = true;
     },
 
     startDrag(event, card, columnIdx){
@@ -153,17 +170,26 @@ export default {
       let indexOfClickedCard = this.distributedCards[columnIdx].findIndex(x => x.id === card.id);
       event.dataTransfer.setData('indexOfClickedCard', indexOfClickedCard);
       
-      /* let img = document.createElement("img");
-      img.src = this.distributedCards[columnIdx][indexOfClickedCard].src;
-      img.style.opacity = '100%';
-      event.dataTransfer.setDragImage(img, 0, 0); */
-      setTimeout(()=>{
-        this.distributedCards[columnIdx][indexOfClickedCard].dragging = true;
-      },0)
+      if(indexOfClickedCard < this.distributedCards[columnIdx].length-1){
+
+        for (let i = indexOfClickedCard; i < this.distributedCards[columnIdx].length; i++) {
+          this.arrayForDragging.push(this.distributedCards[columnIdx][i]); 
+          setTimeout(()=>{
+            this.distributedCards[columnIdx][i].dragging = true;
+          },0)
+        }
+      }else{
+        this.arrayForDragging.push(this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1]);
+        setTimeout(()=>{
+          this.distributedCards[columnIdx][indexOfClickedCard].dragging = true;
+        },0)
+      }
     
     },
+
     onDrop(event, columnIdx){
       this.isDragging = false;
+      this.arrayForDragging = [];
       const cardID = event.dataTransfer.getData('cardID');
       const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx');
       const indexOfClickedCard = event.dataTransfer.getData('indexOfClickedCard');
@@ -177,6 +203,9 @@ export default {
         let counter = 0;
         for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
           tempArray.push(this.distributedCards[oldColumnIdx][i]);
+
+          //this.arrayForDragging.push(this.distributedCards[oldColumnIdx][i]);
+
           this.distributedCards[oldColumnIdx][i].dragging = false;
           counter++;
         }
@@ -230,5 +259,11 @@ export default {
 
 img{
   width: 12vh;
+  position: absolute;
+  
+}
+
+.dragImage-container{
+  position:relative;
 }
 </style>

@@ -15,7 +15,7 @@
          :style="{top: idx * 12 + 10 + 'px'}"
          :dragging="card.dragging"
          :draggable="card.flipped ? 'true' : 'false'"
-         @dragend="$emit('dragEnd', card)"
+         @dragend="$emit('dragEnd', card, idx, index)"
          @dragstart="$emit('startDrag', $event, card, index)"
          @drag="$emit('onDrag', $event)"
          @calculateWidth="$emit('calculateWidth', $event)"
@@ -44,11 +44,6 @@ export default {
         }
     },
     methods:{
-        /* calculateWidth(height){
-      console.log("swag", height);
-      //this.cardWidth = width;
-      this.cardHeight = height;
-    }, */
     }
 }
 </script>
@@ -59,4 +54,5 @@ export default {
     width:140px;
     height:140px;
 }
+
 </style>
