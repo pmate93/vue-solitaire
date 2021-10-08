@@ -50,7 +50,9 @@ export default {
 
       deck:[
         {type: ''},
-        {number: ''},
+        {number: 0},
+        {title: ''},
+        {color: ''},
         {src: ''},
         {id: 0},
         {flipped: false},
@@ -68,8 +70,8 @@ export default {
     generateDeck(){
       this.deck = [];
       let temporaryDeck = [];
-      let types = ['hearts', 'spades', 'clubs', 'diamonds'];
-      let numbers = [
+      let types = ['hearts', 'spades', 'diamonds', 'clubs'];
+      let titles = [
         '2', '3', '4', '5', '6', '7', '8', '9', '10',
         'jack', 'queen', 'king', 'ace'
       ];
@@ -81,8 +83,10 @@ export default {
         for (let j = 0; j < 13; j++) {
           temporaryDeck.push({
             type: types[i],
-            number: numbers[j],
-            src: require('./assets/cards/' + numbers[j] + '_of_' + types[i] + '.svg'),
+            number: j+2,
+            color: i % 2 ? 'black' : 'red',
+            title: titles[j],
+            src: require('./assets/cards/' + titles[j] + '_of_' + types[i] + '.svg'),
             flipped: false
           })
         }
@@ -95,7 +99,7 @@ export default {
         this.deck[removedIndex].id = deckSize;
         deckSize -= 1;
       }while(deckSize >= 0);
-      console.log(this.deck);
+
       //getting distributed cards
       let tempDeck = [];
       for(let i = 0; i < 28; i++){
@@ -110,7 +114,6 @@ export default {
         }
         this.distributedCards[i][this.distributedCards[i].length-1].flipped = true;
       }
-      console.log(this.distributedCards);
     },
 
     calculateWidth(imageSize){
@@ -193,45 +196,55 @@ export default {
       const cardID = event.dataTransfer.getData('cardID');
       const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx');
       const indexOfClickedCard = event.dataTransfer.getData('indexOfClickedCard');
+      let isEnabledToDrop = false;
       console.log(cardID, oldColumnIdx, columnIdx);
-      /* setTimeout(()=>{
-        this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
-      },0) */
-      if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
-        console.log('yolo');
-        let tempArray = [];
-        let counter = 0;
-        for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
-          tempArray.push(this.distributedCards[oldColumnIdx][i]);
+      
+      console.log('yolo', this.distributedCards[columnIdx].length);
 
-          //this.arrayForDragging.push(this.distributedCards[oldColumnIdx][i]);
-
-          this.distributedCards[oldColumnIdx][i].dragging = false;
-          counter++;
-        }
-        console.log(tempArray);
-        //adding and removing selected card
-        for (let i = 0; i < counter; i++) {
-          this.distributedCards[oldColumnIdx].pop();
-        }
-        this.distributedCards[columnIdx].push(...tempArray);
-      }else{
-        setTimeout(()=>{
-          this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
-        },0)
-        this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+      //drop rule
+      if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'king' && this.distributedCards[columnIdx].length === 0){
+        isEnabledToDrop = true;
       }
-      //flipping top card where card was removed
-      if(this.distributedCards[oldColumnIdx].length-1 >= 0){
-        this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+
+      else if(this.distributedCards[columnIdx].length > 0){
+        if((this.distributedCards[oldColumnIdx][indexOfClickedCard].color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color) 
+      && (this.distributedCards[oldColumnIdx][indexOfClickedCard].number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number)){
+          isEnabledToDrop = true;
+        }
+      }
+
+      if(isEnabledToDrop){
+        if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
+          console.log('yolo');
+          let tempArray = [];
+          let counter = 0;
+          for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
+            tempArray.push(this.distributedCards[oldColumnIdx][i]);
+  
+            
+  
+            this.distributedCards[oldColumnIdx][i].dragging = false;
+            counter++;
+          }
+          
+          //adding and removing selected card
+          for (let i = 0; i < counter; i++) {
+            this.distributedCards[oldColumnIdx].pop();
+          }
+          this.distributedCards[columnIdx].push(...tempArray);
+        }else{
+          setTimeout(()=>{
+            this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
+          },0)
+          this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+        }
+        //flipping top card where card was removed
+        if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+          this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+        }
       }
     },
 
-    yolo(){
-      console.log('object')
-    }
-
-  
   },
   created(){
     this.generateDeck();
