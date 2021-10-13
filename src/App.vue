@@ -1,4 +1,16 @@
 <template>
+  <DeckContainer
+  :deck="deck"
+  :cardsFlippedFromDeck="cardsFlippedFromDeck"
+  :isDeckEmpty="isDeckEmpty"
+  :topThreeCards="topThreeCards"
+  @flipThreeCards="flipThreeCards"
+  @cardsBackToDeck="cardsBackToDeck"
+  @startDrag="startDrag" 
+  @dragEnd="dragEnd"
+  @onDrag="onDrag"
+   />
+
   <DistributedCards :distributedCards="distributedCards"
   @onDrag="onDrag"
   @onDrop="onDrop" 
@@ -29,7 +41,8 @@
 </template>
 
 <script>
-import DistributedCards from './components/DistributedCards.vue'
+import DistributedCards from './components/DistributedCards.vue';
+import DeckContainer from './components/DeckContainer.vue';
 //import image from './assets/cards/2_of_clubs.svg'
 //import card_back from './assets/card-back.jpg'
 import fake_back from './assets/fake-back.jpg'
@@ -37,7 +50,8 @@ import fake_back from './assets/fake-back.jpg'
 export default {
   name: 'App',
   components: {
-    DistributedCards
+    DistributedCards,
+    DeckContainer
   },
   data(){
     return{
@@ -61,7 +75,10 @@ export default {
       distributedCards: [
         { columns: [] }
       ],
-      arrayForDragging: []
+      arrayForDragging: [],
+      cardsFlippedFromDeck: [],
+      topThreeCards: [],
+      isDeckEmpty: false
       
     }
   },
@@ -116,6 +133,48 @@ export default {
       }
     },
 
+    cardsBackToDeck(){
+      this.cardsFlippedFromDeck.forEach(card => {
+        card.flipped = false;
+      });
+      this.deck = [...this.cardsFlippedFromDeck];
+      this.deck.reverse();
+      this.cardsFlippedFromDeck = [];
+      this.isDeckEmpty = false;
+      this.topThreeCards = [];
+      
+    },
+
+    flipThreeCards(){
+      console.log(this.deck)
+      if(this.deck.length !== 0){
+        
+        if(this.deck.length > 3){
+          for(let i = 0; i < 3; i++){
+            this.cardsFlippedFromDeck.push(this.deck.pop());  
+            this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length-1].flipped = true;
+          }
+        }else{
+          for(let i = 0; i < this.deck.length; i++){
+            this.cardsFlippedFromDeck.push(this.deck.pop());  
+            this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length-1].flipped = true;
+          }
+        }
+
+        if(this.deck.length === 0){
+          setTimeout(()  =>{
+            this.isDeckEmpty = true;
+          }, 0);
+        }
+
+        this.topThreeCards = this.cardsFlippedFromDeck.slice(this.cardsFlippedFromDeck.length - 3, this.cardsFlippedFromDeck.length);
+
+      }else{
+        this.deck = [...this.cardsFlippedFromDeck];
+        this.cardsFlippedFromDeck = [];
+      }
+    },
+
     calculateWidth(imageSize){
       this.cardWidth = imageSize.width;
       this.cardHeight = imageSize.height;
@@ -133,13 +192,19 @@ export default {
     },
 
     dragEnd(card, idx, columnIdx){
-
-      if(idx < this.distributedCards[columnIdx].length-1){
-        for (let i = idx; i < this.distributedCards[columnIdx].length; i++) {
-          this.distributedCards[columnIdx][i].dragging = false;
-        }
-      }else{
+      
+      if(columnIdx == -1){
         card.dragging = false;
+
+      }else{
+        
+        if(idx < this.distributedCards[columnIdx].length-1){
+          for (let i = idx; i < this.distributedCards[columnIdx].length; i++) {
+            this.distributedCards[columnIdx][i].dragging = false;
+          }
+        }else{
+          card.dragging = false;
+        }
       }
 
       this.isDragging = false;
@@ -165,28 +230,40 @@ export default {
       
       //document.getElementById('app').append(this.$refs.realDragImage);
       //event.dataTransfer.setDragImage(this.$refs.fakeDragImage, 0, 0);
-
       event.dataTransfer.dropEffect = 'move';
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('cardID', card.id);
       event.dataTransfer.setData('oldColumnIdx', columnIdx);
-      let indexOfClickedCard = this.distributedCards[columnIdx].findIndex(x => x.id === card.id);
-      event.dataTransfer.setData('indexOfClickedCard', indexOfClickedCard);
-      
-      if(indexOfClickedCard < this.distributedCards[columnIdx].length-1){
 
-        for (let i = indexOfClickedCard; i < this.distributedCards[columnIdx].length; i++) {
-          this.arrayForDragging.push(this.distributedCards[columnIdx][i]); 
+      //from deckContainer
+      if(columnIdx == -1){
+        this.arrayForDragging.push(this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length - 1]);
+        setTimeout(()=>{
+          this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length - 1].dragging = true;
+        },0)
+      }else{
+        //from disributed cards
+        
+        let indexOfClickedCard = this.distributedCards[columnIdx].findIndex(x => x.id === card.id);
+        event.dataTransfer.setData('indexOfClickedCard', indexOfClickedCard);
+        
+        if(indexOfClickedCard < this.distributedCards[columnIdx].length - 1){
+  
+          for (let i = indexOfClickedCard; i < this.distributedCards[columnIdx].length; i++) {
+            this.arrayForDragging.push(this.distributedCards[columnIdx][i]); 
+            setTimeout(()=>{
+              this.distributedCards[columnIdx][i].dragging = true;
+            },0)
+          }
+        }else{
+          this.arrayForDragging.push(this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1]);
           setTimeout(()=>{
-            this.distributedCards[columnIdx][i].dragging = true;
+            this.distributedCards[columnIdx][indexOfClickedCard].dragging = true;
           },0)
         }
-      }else{
-        this.arrayForDragging.push(this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1]);
-        setTimeout(()=>{
-          this.distributedCards[columnIdx][indexOfClickedCard].dragging = true;
-        },0)
       }
+
+
     
     },
 
@@ -194,15 +271,31 @@ export default {
       this.isDragging = false;
       this.arrayForDragging = [];
       const cardID = event.dataTransfer.getData('cardID');
-      const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx');
-      const indexOfClickedCard = event.dataTransfer.getData('indexOfClickedCard');
+      const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx'); // if -1 -> from deck
+      const indexOfClickedCard = oldColumnIdx !== -1 ? event.dataTransfer.getData('indexOfClickedCard') : null;
       let isEnabledToDrop = false;
       console.log(cardID, oldColumnIdx, columnIdx);
       
-      console.log('yolo', this.distributedCards[columnIdx].length);
+      let actCard = this.topThreeCards[this.topThreeCards.length - 1];
+      console.log(actCard);
+      // from deck to dist cards
+      if(oldColumnIdx === '-1'){
+        
+        if(actCard.title === 'king' && this.distributedCards[columnIdx].length === 0){
+          setTimeout(()=>{
+            actCard.dragging = false;
+          },0)
+          
+          this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+          this.topThreeCards.pop();
 
-      //drop rule
-      if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'king' && this.distributedCards[columnIdx].length === 0){
+        }else if(actCard.color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color && actCard.number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number){
+          this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+          this.topThreeCards.pop();
+        }
+      }
+      //from dist cards to dist cards
+      else if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'king' && this.distributedCards[columnIdx].length === 0){
         isEnabledToDrop = true;
       }
 
@@ -215,7 +308,7 @@ export default {
 
       if(isEnabledToDrop){
         if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
-          console.log('yolo');
+
           let tempArray = [];
           let counter = 0;
           for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
@@ -238,11 +331,12 @@ export default {
           },0)
           this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
         }
-        //flipping top card where card was removed
+        //flipping top card where was removed
         if(this.distributedCards[oldColumnIdx].length-1 >= 0){
           this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
         }
       }
+      
     },
 
   },
@@ -267,7 +361,7 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px; */
-  display: flex;
+  
 }
 
 img{

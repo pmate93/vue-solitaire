@@ -1,27 +1,28 @@
 <template>
-    
-    <div v-for='(cards, index) in distributedCards' :key="index">
-        <div v-if="index > 0" class="card-container"
-         @drop="$emit('onDrop', $event, index)"
-         @dragenter.prevent
-         @dragover.prevent
-            >
-        <Card v-for='(card, idx) in cards'
-         :idx="idx"
-         :length="cards.length" 
-         :key="card.id" 
-         :url="card.src"
-         :flipped="card.flipped"
-         :style="{top: idx * 12 + 10 + 'px'}"
-         :dragging="card.dragging"
-         :draggable="card.flipped ? 'true' : 'false'"
-         @dragend="$emit('dragEnd', card, idx, index)"
-         @dragstart="$emit('startDrag', $event, card, index)"
-         @drag="$emit('onDrag', $event)"
-         @calculateWidth="$emit('calculateWidth', $event)"
-          />
+    <div class="distributed-cards">
+        <div v-for='(cards, index) in distributedCards' :key="index">
+            <div v-if="index > 0" class="card-container"
+            @drop="$emit('onDrop', $event, index)"
+            @dragenter.prevent
+            @dragover.prevent
+                >
+            <Card v-for='(card, idx) in cards'
+            :length="cards.length" 
+            :key="card.id" 
+            :url="card.src"
+            :flipped="card.flipped"
+            :style="{top: idx * 12 + 10 + 'px'}"
+            :dragging="card.dragging"
+            :draggable="card.flipped ? 'true' : 'false'"
+            @dragend="$emit('dragEnd', card, idx, index)"
+            @dragstart="$emit('startDrag', $event, card, index)"
+            @drag="$emit('onDrag', $event)"
+            @calculateWidth="$emit('calculateWidth', $event)"
+            />
 
+            </div>
         </div>
+
     </div>
 
 </template>
@@ -53,6 +54,10 @@ export default {
     position:relative;
     width:140px;
     height:140px;
+}
+
+.distributed-cards{
+    display: flex;
 }
 
 </style>
