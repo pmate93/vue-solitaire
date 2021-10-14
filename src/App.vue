@@ -1,15 +1,28 @@
 <template>
-  <DeckContainer
-  :deck="deck"
-  :cardsFlippedFromDeck="cardsFlippedFromDeck"
-  :isDeckEmpty="isDeckEmpty"
-  :topThreeCards="topThreeCards"
-  @flipThreeCards="flipThreeCards"
-  @cardsBackToDeck="cardsBackToDeck"
-  @startDrag="startDrag" 
-  @dragEnd="dragEnd"
-  @onDrag="onDrag"
-   />
+
+  <div class="top">
+    <DeckContainer
+    :deck="deck"
+    :cardsFlippedFromDeck="cardsFlippedFromDeck"
+    :isDeckEmpty="isDeckEmpty"
+    :topThreeCards="topThreeCards"
+    @flipThreeCards="flipThreeCards"
+    @cardsBackToDeck="cardsBackToDeck"
+    @startDrag="startDrag" 
+    @dragEnd="dragEnd"
+    @onDrag="onDrag"
+    />
+
+    <FinalContainer
+    :finalCards="finalCards"
+    :cardWidth="cardWidth"
+    :cardHeight="cardHeight"
+    @onDrop="onDrop"
+    @startDrag="startDrag" 
+    @dragEnd="dragEnd"
+    @onDrag="onDrag"
+     />
+  </div>
 
   <DistributedCards :distributedCards="distributedCards"
   @onDrag="onDrag"
@@ -19,7 +32,8 @@
   @calculateWidth="calculateWidth"
 
   />
-  <!-- <img src="./assets/cards/2_of_clubs.svg"> -->
+  
+
   <div
   ref="fakeDragImage"
   class="fakeDragImage"
@@ -43,6 +57,7 @@
 <script>
 import DistributedCards from './components/DistributedCards.vue';
 import DeckContainer from './components/DeckContainer.vue';
+import FinalContainer from './components/FinalContainer.vue';
 //import image from './assets/cards/2_of_clubs.svg'
 //import card_back from './assets/card-back.jpg'
 import fake_back from './assets/fake-back.jpg'
@@ -51,7 +66,8 @@ export default {
   name: 'App',
   components: {
     DistributedCards,
-    DeckContainer
+    DeckContainer,
+    FinalContainer
   },
   data(){
     return{
@@ -78,7 +94,13 @@ export default {
       arrayForDragging: [],
       cardsFlippedFromDeck: [],
       topThreeCards: [],
-      isDeckEmpty: false
+      isDeckEmpty: false,
+      finalCards: [
+        [0],
+        [0],
+        [0],
+        [0]
+      ]
       
     }
   },
@@ -191,9 +213,9 @@ export default {
 
     },
 
-    dragEnd(card, idx, columnIdx){
+    dragEnd(card, idx, columnIdx, fromWhere){
       
-      if(columnIdx == -1){
+      if(columnIdx == -1 || fromWhere === 'fromFinal'){
         card.dragging = false;
 
       }else{
@@ -222,21 +244,24 @@ export default {
         this.isDragging = true;
     },
 
-    startDrag(event, card, columnIdx){
+    startDrag(event, card, columnIdx, fromWhere){
       this.whichImageToDrag(card.src);
-
       event.dataTransfer.setDragImage(this.emptyImage[0], 0, 0);
       
-      
-      //document.getElementById('app').append(this.$refs.realDragImage);
-      //event.dataTransfer.setDragImage(this.$refs.fakeDragImage, 0, 0);
       event.dataTransfer.dropEffect = 'move';
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('cardID', card.id);
       event.dataTransfer.setData('oldColumnIdx', columnIdx);
-
+      event.dataTransfer.setData('fromWhere', fromWhere);
+      //from final cards
+      if(fromWhere === 'fromFinal'){
+        this.arrayForDragging.push(this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1]);
+        setTimeout(()=>{
+          this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].dragging = true;
+        },0)
+      }
       //from deckContainer
-      if(columnIdx == -1){
+      else if(columnIdx == -1){
         this.arrayForDragging.push(this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length - 1]);
         setTimeout(()=>{
           this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length - 1].dragging = true;
@@ -267,76 +292,143 @@ export default {
     
     },
 
-    onDrop(event, columnIdx){
+    onDrop(event, columnIdx, toWhere){
       this.isDragging = false;
       this.arrayForDragging = [];
       const cardID = event.dataTransfer.getData('cardID');
       const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx'); // if -1 -> from deck
       const indexOfClickedCard = oldColumnIdx !== -1 ? event.dataTransfer.getData('indexOfClickedCard') : null;
+      const fromWhere = event.dataTransfer.getData('fromWhere');
       let isEnabledToDrop = false;
       console.log(cardID, oldColumnIdx, columnIdx);
       
       let actCard = this.topThreeCards[this.topThreeCards.length - 1];
-      console.log(actCard);
-      // from deck to dist cards
-      if(oldColumnIdx === '-1'){
+      //console.log(this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type.title)
+      //from deck to final cards
+      if(toWhere === 'toFinal'){
         
-        if(actCard.title === 'king' && this.distributedCards[columnIdx].length === 0){
-          setTimeout(()=>{
-            actCard.dragging = false;
-          },0)
-          
-          this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
-          this.topThreeCards.pop();
+        if(oldColumnIdx === "-1"){
+          if(actCard.title === 'ace' && this.finalCards[columnIdx].length === 1){
+ 
+            this.finalCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+            this.topThreeCards.pop();
+
+          }else if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
+           && actCard.number === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].number + 1) && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title !== 'king'))
+           || ((actCard.title === '2') && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title === 'ace') && (actCard.type === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type))){
+            
+            this.finalCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+            this.topThreeCards.pop();
+          }
+
+        }else if(fromWhere === 'fromFinal' && toWhere !== 'toDist'){
+          //from final to final ace
+          if(this.finalCards[oldColumnIdx][this.finalCards[oldColumnIdx].length - 1].title === 'ace' && this.finalCards[columnIdx].length === 1){
+            this.finalCards[columnIdx].push(this.finalCards[oldColumnIdx].pop());
+          }
+        //from dist to final cards
+        }else{
+
+          if(parseInt(indexOfClickedCard) === this.distributedCards[oldColumnIdx].length -1){
+            actCard = this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length - 1];
+            if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'ace' && this.finalCards[columnIdx].length === 1){
+              
+              this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+              //flipping top card where was removed
+              if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+                this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+              }
+            }
+
+            else if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
+             && actCard.number === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].number + 1) && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title !== 'king'))
+             || ((actCard.title === '2') && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title === 'ace') && (actCard.type === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type))){
+            
+              this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+              //flipping top card where was removed
+              if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+                this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+              }
+            }
+          }
+        }
+      //from final to dist
+      }else if(toWhere === 'toDist' && fromWhere === 'fromFinal'){
+        actCard = this.finalCards[oldColumnIdx][this.finalCards[oldColumnIdx].length - 1];
+
+        if(this.distributedCards[columnIdx].length === 0){
+          if(actCard.title === 'king'){
+            setTimeout(()=>{
+              actCard.dragging = false;
+            },0)
+            this.distributedCards[columnIdx].push(this.finalCards[oldColumnIdx].pop());
+          }
 
         }else if(actCard.color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color && actCard.number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number){
-          this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
-          this.topThreeCards.pop();
-        }
-      }
-      //from dist cards to dist cards
-      else if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'king' && this.distributedCards[columnIdx].length === 0){
-        isEnabledToDrop = true;
-      }
+            this.distributedCards[columnIdx].push(this.finalCards[oldColumnIdx].pop());
+          }
 
-      else if(this.distributedCards[columnIdx].length > 0){
-        if((this.distributedCards[oldColumnIdx][indexOfClickedCard].color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color) 
-      && (this.distributedCards[oldColumnIdx][indexOfClickedCard].number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number)){
+      }else{
+        // from deck to dist cards
+        if(oldColumnIdx === '-1'){
+          
+          if(this.distributedCards[columnIdx].length === 0){
+            if(actCard.title === 'king'){
+              setTimeout(()=>{
+                actCard.dragging = false;
+              },0)
+              this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+              this.topThreeCards.pop();
+            }
+            
+          }else if(actCard.color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color && actCard.number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number){
+            this.distributedCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+            this.topThreeCards.pop();
+          }
+        }
+        //from dist cards to dist cards
+        else if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'king' && this.distributedCards[columnIdx].length === 0){
           isEnabledToDrop = true;
         }
-      }
-
-      if(isEnabledToDrop){
-        if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
-
-          let tempArray = [];
-          let counter = 0;
-          for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
-            tempArray.push(this.distributedCards[oldColumnIdx][i]);
   
+        else if(this.distributedCards[columnIdx].length > 0){
+          if((this.distributedCards[oldColumnIdx][indexOfClickedCard].color !== this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].color) 
+        && (this.distributedCards[oldColumnIdx][indexOfClickedCard].number + 1 === this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].number)){
+            isEnabledToDrop = true;
+          }
+        }
+  
+        if(isEnabledToDrop){
+          if(indexOfClickedCard < this.distributedCards[oldColumnIdx].length-1){
+  
+            let tempArray = [];
+            let counter = 0;
+            for (let i = indexOfClickedCard; i < this.distributedCards[oldColumnIdx].length; i++) {
+              tempArray.push(this.distributedCards[oldColumnIdx][i]);
+    
+              
+    
+              this.distributedCards[oldColumnIdx][i].dragging = false;
+              counter++;
+            }
             
-  
-            this.distributedCards[oldColumnIdx][i].dragging = false;
-            counter++;
+            //adding and removing selected card
+            for (let i = 0; i < counter; i++) {
+              this.distributedCards[oldColumnIdx].pop();
+            }
+            this.distributedCards[columnIdx].push(...tempArray);
+          }else{
+            setTimeout(()=>{
+              this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
+            },0)
+            this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
           }
-          
-          //adding and removing selected card
-          for (let i = 0; i < counter; i++) {
-            this.distributedCards[oldColumnIdx].pop();
+          //flipping top card where was removed
+          if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+            this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
           }
-          this.distributedCards[columnIdx].push(...tempArray);
-        }else{
-          setTimeout(()=>{
-            this.distributedCards[columnIdx][this.distributedCards[columnIdx].length-1].dragging = false;
-          },0)
-          this.distributedCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
-        }
-        //flipping top card where was removed
-        if(this.distributedCards[oldColumnIdx].length-1 >= 0){
-          this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
         }
       }
-      
     },
 
   },
@@ -361,7 +453,7 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px; */
-  
+  position:absolute;
 }
 
 img{
@@ -372,5 +464,9 @@ img{
 
 .dragImage-container{
   position:relative;
+}
+
+.top{
+  display: flex;
 }
 </style>

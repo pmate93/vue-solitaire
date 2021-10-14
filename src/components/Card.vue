@@ -4,7 +4,7 @@
   v-bind:src="this.url"
   ref="image"
   :style="{display: this.dragging ? 'none' : ''}"
-
+  @load="getWidth"
   class="child">
 
   <img v-else v-bind:src="card_back" class="child">
@@ -36,7 +36,7 @@ export default {
   },
 
   methods: {
-    /* getWidth(){
+    getWidth(){
 
       this.imageSize.height = this.$refs.image.clientHeight;
       this.imageSize.width = this.$refs.image.clientWidth;
@@ -49,12 +49,12 @@ export default {
       this.imageSize.width = document.getElementsByClassName('child')[0].clientWidth;
 
       this.$emit('calculateWidth', this.imageSize);
-    } */
+    } 
   },
 
-  /* created() {
+  created() {
     window.addEventListener("resize", this.setWidthAndHeight)
-  }, */
+  }, 
 
   
 

@@ -2,7 +2,7 @@
     <div class="distributed-cards">
         <div v-for='(cards, index) in distributedCards' :key="index">
             <div v-if="index > 0" class="card-container"
-            @drop="$emit('onDrop', $event, index)"
+            @drop="$emit('onDrop', $event, index, 'toDist')"
             @dragenter.prevent
             @dragover.prevent
                 >
@@ -14,8 +14,8 @@
             :style="{top: idx * 12 + 10 + 'px'}"
             :dragging="card.dragging"
             :draggable="card.flipped ? 'true' : 'false'"
-            @dragend="$emit('dragEnd', card, idx, index)"
-            @dragstart="$emit('startDrag', $event, card, index)"
+            @dragend="$emit('dragEnd', card, idx, index, 'fromDist')"
+            @dragstart="$emit('startDrag', $event, card, index, 'fromDist')"
             @drag="$emit('onDrag', $event)"
             @calculateWidth="$emit('calculateWidth', $event)"
             />

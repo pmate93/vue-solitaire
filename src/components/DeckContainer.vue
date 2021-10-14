@@ -24,8 +24,8 @@
                 :url="card.src"
                 :dragging="card.dragging"
 
-                @dragend="$emit('dragEnd', card, index, -1)"
-                @dragstart="$emit('startDrag', $event, card, -1)"
+                @dragend="$emit('dragEnd', card, index, -1, 'fromDeck')"
+                @dragstart="$emit('startDrag', $event, card, -1, 'fromDeck')"
                 @drag="$emit('onDrag', $event)"
                 
                 />
