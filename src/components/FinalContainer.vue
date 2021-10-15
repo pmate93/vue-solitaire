@@ -1,20 +1,24 @@
 <template>
   <div v-for='(cards, index) in finalCards' :key="index" 
-  class="card-form" 
+  class="card-form"
   :style="{width: this.cardWidth + 'px', height: this.cardHeight + 'px'}"
   @drop="$emit('onDrop', $event, index, 'toFinal')"
   @dragenter.prevent
   @dragover.prevent >
 
-    <div v-if="cards.length === 1" ></div>
-    <Card v-else v-for='(card) in cards' 
-    :key="card.id"
-    :flipped="card.flipped"
-    :url="card.src"
-    :dragging="card.dragging"
-    @dragend="$emit('dragEnd', card, cards.length - 1, index, 'fromFinal')"
-    @dragstart="$emit('startDrag', $event, card, index, 'fromFinal')"
-    @drag="$emit('onDrag', $event)" />
+    <!-- <div v-if="cards.length === 1" ></div> -->
+    <!-- <div v-if="cards.length > 1 && !isDraggingFromFinal"> -->
+      <Card v-for='(card) in cards'
+      
+      :key="card.id"
+      :flipped="card.flipped"
+      :url="card.src"
+      :dragging="card.dragging"
+      @dragend="$emit('dragEnd', card, cards.length - 1, index, 'fromFinal')"
+      @dragstart="$emit('startDrag', $event, card, index, 'fromFinal')"
+      @drag="$emit('onDrag', $event, 'fromFinal')" />
+
+    <!-- </div> -->
 
   </div>
 </template>
@@ -31,7 +35,8 @@ export default {
     props:{
         finalCards: Array,
         cardWidth: Number,
-        cardHeight: Number
+        cardHeight: Number,
+        isDraggingFromFinal: Boolean
     },
 }
 </script>

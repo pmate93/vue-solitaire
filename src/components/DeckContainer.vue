@@ -9,7 +9,7 @@
                 :flipped="card.flipped"
                 :url="card.src"
                 :dragging="card.dragging"
-                @click="index === deck.length-1 ? $emit('flipThreeCards') : null"
+                @click="index === deck.length - 1 ? $emit('flipThreeCards') : null"
                 />
                 
             </div>
@@ -26,7 +26,7 @@
 
                 @dragend="$emit('dragEnd', card, index, -1, 'fromDeck')"
                 @dragstart="$emit('startDrag', $event, card, -1, 'fromDeck')"
-                @drag="$emit('onDrag', $event)"
+                @drag="$emit('onDrag', $event, 'fromDeck')"
                 
                 />
                 

@@ -16,7 +16,7 @@
             :draggable="card.flipped ? 'true' : 'false'"
             @dragend="$emit('dragEnd', card, idx, index, 'fromDist')"
             @dragstart="$emit('startDrag', $event, card, index, 'fromDist')"
-            @drag="$emit('onDrag', $event)"
+            @drag="$emit('onDrag', $event, 'fromDist')"
             @calculateWidth="$emit('calculateWidth', $event)"
             />
 

@@ -17,6 +17,7 @@
     :finalCards="finalCards"
     :cardWidth="cardWidth"
     :cardHeight="cardHeight"
+    :isDraggingFromFinal="isDraggingFromFinal"
     @onDrop="onDrop"
     @startDrag="startDrag" 
     @dragEnd="dragEnd"
@@ -74,6 +75,7 @@ export default {
       dragImage: '',
       fake_back: fake_back,
       isDragging: false,
+      isDraggingFromFinal: false,
       emptyImage: [],
       cardWidth: 0,
       cardHeight: 0,
@@ -96,10 +98,10 @@ export default {
       topThreeCards: [],
       isDeckEmpty: false,
       finalCards: [
-        [0],
-        [0],
-        [0],
-        [0]
+        [],
+        [],
+        [],
+        []
       ]
       
     }
@@ -217,6 +219,7 @@ export default {
       
       if(columnIdx == -1 || fromWhere === 'fromFinal'){
         card.dragging = false;
+        this.isDraggingFromFinal = false;
 
       }else{
         
@@ -234,7 +237,7 @@ export default {
 
     },
 
-    onDrag(event){
+    onDrag(event, fromWhere){
 
       if (!event.pageX && !event.pageY) return
         //const [offsetX, offsetY] = [-this.cardWidth/2, -this.cardHeight/2];
@@ -242,6 +245,9 @@ export default {
         this.$refs.realDragImage.style.left = event.pageX + offsetX + 'px';
         this.$refs.realDragImage.style.top = event.pageY + offsetY + 'px';
         this.isDragging = true;
+        if(fromWhere === 'fromFinal'){
+          this.isDraggingFromFinal = true;
+        }
     },
 
     startDrag(event, card, columnIdx, fromWhere){
@@ -253,8 +259,10 @@ export default {
       event.dataTransfer.setData('cardID', card.id);
       event.dataTransfer.setData('oldColumnIdx', columnIdx);
       event.dataTransfer.setData('fromWhere', fromWhere);
+
       //from final cards
       if(fromWhere === 'fromFinal'){
+        
         this.arrayForDragging.push(this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1]);
         setTimeout(()=>{
           this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].dragging = true;
@@ -308,48 +316,56 @@ export default {
       if(toWhere === 'toFinal'){
         
         if(oldColumnIdx === "-1"){
-          if(actCard.title === 'ace' && this.finalCards[columnIdx].length === 1){
+          if(actCard.title === 'ace' && this.finalCards[columnIdx].length === 0){
  
             this.finalCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
             this.topThreeCards.pop();
 
-          }else if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
+          }else if(this.finalCards[columnIdx].length !== 0){
+
+           if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
            && actCard.number === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].number + 1) && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title !== 'king'))
            || ((actCard.title === '2') && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title === 'ace') && (actCard.type === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type))){
+
+             this.finalCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
+             this.topThreeCards.pop();
+            }
             
-            this.finalCards[columnIdx].push(this.cardsFlippedFromDeck.pop());
-            this.topThreeCards.pop();
           }
 
         }else if(fromWhere === 'fromFinal' && toWhere !== 'toDist'){
           //from final to final ace
-          if(this.finalCards[oldColumnIdx][this.finalCards[oldColumnIdx].length - 1].title === 'ace' && this.finalCards[columnIdx].length === 1){
+          if(this.finalCards[oldColumnIdx][this.finalCards[oldColumnIdx].length - 1].title === 'ace' && this.finalCards[columnIdx].length === 0){
             this.finalCards[columnIdx].push(this.finalCards[oldColumnIdx].pop());
           }
         //from dist to final cards
         }else{
 
-          if(parseInt(indexOfClickedCard) === this.distributedCards[oldColumnIdx].length -1){
-            actCard = this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length - 1];
-            if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'ace' && this.finalCards[columnIdx].length === 1){
+          if(this.finalCards[columnIdx].length !== 0){
+            if(parseInt(indexOfClickedCard) === this.distributedCards[oldColumnIdx].length -1){
+              actCard = this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length - 1];
               
-              this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
-              //flipping top card where was removed
-              if(this.distributedCards[oldColumnIdx].length-1 >= 0){
-                this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+              if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
+               && actCard.number === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].number + 1) && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title !== 'king'))
+               || ((actCard.title === '2') && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title === 'ace') && (actCard.type === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type))){
+              
+                this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
+                //flipping top card where was removed
+                if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+                  this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+                }
               }
             }
+          }else{
+            if(this.distributedCards[oldColumnIdx][indexOfClickedCard].title === 'ace' && this.finalCards[columnIdx].length === 0){
+                
+                this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
 
-            else if(((actCard.type ===  this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type
-             && actCard.number === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].number + 1) && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title !== 'king'))
-             || ((actCard.title === '2') && (this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].title === 'ace') && (actCard.type === this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type))){
-            
-              this.finalCards[columnIdx].push(this.distributedCards[oldColumnIdx].pop());
-              //flipping top card where was removed
-              if(this.distributedCards[oldColumnIdx].length-1 >= 0){
-                this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+                //flipping top card where was removed
+                if(this.distributedCards[oldColumnIdx].length-1 >= 0){
+                  this.distributedCards[oldColumnIdx][this.distributedCards[oldColumnIdx].length-1].flipped = true;
+                }
               }
-            }
           }
         }
       //from final to dist
