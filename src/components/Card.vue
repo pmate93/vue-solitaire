@@ -1,13 +1,14 @@
 <template>
 
-  <img v-if="flipped" 
+  <img v-if="flipped"
+  @click.right.prevent 
   v-bind:src="this.url"
   ref="image"
   :style="{display: this.dragging ? 'none' : ''}"
   @load="getWidth"
   class="child">
 
-  <img v-else v-bind:src="card_back" class="child">
+  <img v-else @copy.prevent v-bind:src="card_back" class="child">
 
 </template>
 
@@ -21,6 +22,7 @@ export default {
     length: Number,
     flipped: Boolean,
     dragging: Boolean,
+    isDeckEmpty: Boolean,
 
   },
 
@@ -38,10 +40,13 @@ export default {
   methods: {
     getWidth(){
 
-      this.imageSize.height = this.$refs.image.clientHeight;
-      this.imageSize.width = this.$refs.image.clientWidth;
+      if(!this.isDeckEmpty){
 
-      this.$emit('calculateWidth', this.imageSize);
+        this.imageSize.height = this.$refs.image.clientHeight;
+        this.imageSize.width = this.$refs.image.clientWidth;
+  
+        this.$emit('calculateWidth', this.imageSize);
+      }
     },
 
     setWidthAndHeight(){
@@ -64,12 +69,16 @@ export default {
 <style>
 .child{
   position:absolute;
-  width: 12vh;
+  width: 7.5rem;
   opacity:100%;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+   -khtml-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
 }
-/* .child:last-child{
-  position: relative;
-} */
+
 img.dragging {
   background-color: navy;
   border-radius: 50%;

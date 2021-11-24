@@ -7,6 +7,7 @@
                 :style="{left: index * 3 + 10 + 'px'}"
                 :draggable="false"
                 :flipped="card.flipped"
+                :isDeckEmpty="isDeckEmpty"
                 :url="card.src"
                 :dragging="card.dragging"
                 @click="index === deck.length - 1 ? $emit('flipThreeCards') : null"
@@ -21,9 +22,9 @@
                 :style="{left: index * 15 + 10 + 'px'}"
                 :draggable="index == topThreeCards.length - 1 ? true : false"
                 :flipped="card.flipped"
+                :isDeckEmpty="isDeckEmpty"
                 :url="card.src"
                 :dragging="card.dragging"
-
                 @dragend="$emit('dragEnd', card, index, -1, 'fromDeck')"
                 @dragstart="$emit('startDrag', $event, card, -1, 'fromDeck')"
                 @drag="$emit('onDrag', $event, 'fromDeck')"
@@ -50,12 +51,6 @@ export default {
         cardsFlippedFromDeck: Array,
         isDeckEmpty: Boolean,
         topThreeCards: Array
-    },
-
-    methods:{
-        asd(){
-            console.log('asd')
-        }
     },
 }
 </script>

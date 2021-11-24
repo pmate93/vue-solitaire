@@ -1,4 +1,5 @@
 <template>
+  <RestartButton @click="generateDeck" />
 
   <div class="top">
     <DeckContainer
@@ -52,6 +53,7 @@
     </div>
   </div>
 
+  <CongratPopup v-if="isGameEnd" />
 
 </template>
 
@@ -59,6 +61,8 @@
 import DistributedCards from './components/DistributedCards.vue';
 import DeckContainer from './components/DeckContainer.vue';
 import FinalContainer from './components/FinalContainer.vue';
+import CongratPopup from './components/CongratPopUp.vue';
+import RestartButton from './components/RestartButton.vue';
 //import image from './assets/cards/2_of_clubs.svg'
 //import card_back from './assets/card-back.jpg'
 import fake_back from './assets/fake-back.jpg'
@@ -68,7 +72,9 @@ export default {
   components: {
     DistributedCards,
     DeckContainer,
-    FinalContainer
+    FinalContainer,
+    CongratPopup,
+    RestartButton
   },
   data(){
     return{
@@ -102,14 +108,19 @@ export default {
         [],
         [],
         []
-      ]
+      ],
+      isGameEnd: false
       
     }
   },
 
   methods:{
     generateDeck(){
+      this.isDeckEmpty = false;
       this.deck = [];
+      this.cardsFlippedFromDeck = [];
+      this.topThreeCards = [];
+      this.finalCards = [ [], [], [], [] ];
       let temporaryDeck = [];
       let types = ['hearts', 'spades', 'diamonds', 'clubs'];
       let titles = [
@@ -170,16 +181,21 @@ export default {
     },
 
     flipThreeCards(){
-      console.log(this.deck)
+      
       if(this.deck.length !== 0){
         
-        if(this.deck.length > 3){
+        if(this.deck.length > 4){
           for(let i = 0; i < 3; i++){
             this.cardsFlippedFromDeck.push(this.deck.pop());  
             this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length-1].flipped = true;
           }
+        }else if(this.deck.length > 2){
+          for(let i = 0; i < this.deck.length + 2; i++){
+            this.cardsFlippedFromDeck.push(this.deck.pop());  
+            this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length-1].flipped = true;
+          }
         }else{
-          for(let i = 0; i < this.deck.length; i++){
+          for(let i = 0; i < this.deck.length + 1; i++){
             this.cardsFlippedFromDeck.push(this.deck.pop());  
             this.cardsFlippedFromDeck[this.cardsFlippedFromDeck.length-1].flipped = true;
           }
@@ -241,7 +257,7 @@ export default {
 
       if (!event.pageX && !event.pageY) return
         //const [offsetX, offsetY] = [-this.cardWidth/2, -this.cardHeight/2];
-        const [offsetX, offsetY] = [2,2];
+        const [offsetX, offsetY] = [-30,-30];
         this.$refs.realDragImage.style.left = event.pageX + offsetX + 'px';
         this.$refs.realDragImage.style.top = event.pageY + offsetY + 'px';
         this.isDragging = true;
@@ -303,12 +319,12 @@ export default {
     onDrop(event, columnIdx, toWhere){
       this.isDragging = false;
       this.arrayForDragging = [];
-      const cardID = event.dataTransfer.getData('cardID');
+      //const cardID = event.dataTransfer.getData('cardID');
       const oldColumnIdx = event.dataTransfer.getData('oldColumnIdx'); // if -1 -> from deck
       const indexOfClickedCard = oldColumnIdx !== -1 ? event.dataTransfer.getData('indexOfClickedCard') : null;
       const fromWhere = event.dataTransfer.getData('fromWhere');
       let isEnabledToDrop = false;
-      console.log(cardID, oldColumnIdx, columnIdx);
+      //console.log(cardID, oldColumnIdx, columnIdx);
       
       let actCard = this.topThreeCards[this.topThreeCards.length - 1];
       //console.log(this.finalCards[columnIdx][this.finalCards[columnIdx].length - 1].type.title)
@@ -368,6 +384,13 @@ export default {
               }
           }
         }
+        
+        for (let i = 0; i < this.finalCards.length; i++) {
+          if(this.finalCards[i].length < 13) break;
+          if(i + 1 == this.finalCards.length && this.finalCards[i].length < 13) this.isGameEnd = true;
+        }
+
+
       //from final to dist
       }else if(toWhere === 'toDist' && fromWhere === 'fromFinal'){
         actCard = this.finalCards[oldColumnIdx][this.finalCards[oldColumnIdx].length - 1];
@@ -461,19 +484,25 @@ export default {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    background-color: rgb(115, 197, 115);
   }
+
+  body{
+    margin: 30px;
+  }
+
 #app {
   /* font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px; */
+  color: #2c3e50;*/
   position:absolute;
+  
 }
 
 img{
-  width: 12vh;
+  width: 7.5rem;
   position: absolute;
   
 }
@@ -483,6 +512,7 @@ img{
 }
 
 .top{
+  margin-top: 25px;
   display: flex;
 }
 </style>

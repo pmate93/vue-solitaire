@@ -1,4 +1,4 @@
-# vue-pathfindig-visualizer
+# vue-solitaire
 
 ## Project setup
 ```

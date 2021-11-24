@@ -6,19 +6,15 @@
   @dragenter.prevent
   @dragover.prevent >
 
-    <!-- <div v-if="cards.length === 1" ></div> -->
-    <!-- <div v-if="cards.length > 1 && !isDraggingFromFinal"> -->
-      <Card v-for='(card) in cards'
-      
-      :key="card.id"
-      :flipped="card.flipped"
-      :url="card.src"
-      :dragging="card.dragging"
-      @dragend="$emit('dragEnd', card, cards.length - 1, index, 'fromFinal')"
-      @dragstart="$emit('startDrag', $event, card, index, 'fromFinal')"
-      @drag="$emit('onDrag', $event, 'fromFinal')" />
+    <Card v-for='(card) in cards'      
+    :key="card.id"
+    :flipped="card.flipped"
+    :url="card.src"
+    :dragging="card.dragging"
+    @dragend="$emit('dragEnd', card, cards.length - 1, index, 'fromFinal')"
+    @dragstart="$emit('startDrag', $event, card, index, 'fromFinal')"
+    @drag="$emit('onDrag', $event, 'fromFinal')" />
 
-    <!-- </div> -->
 
   </div>
 </template>
