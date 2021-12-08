@@ -1,5 +1,7 @@
 # vue-solitaire
 
+Hosting: https://pmate93.github.io/vue-solitaire/
+
 ## Project setup
 ```
 npm install
